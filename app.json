@@ -1,27 +1,57 @@
 {
   "expo": {
-    "name": "admin",
-    "slug": "admin",
+    "name": "GAdmin",
+    "slug": "gadmin",
     "version": "1.0.0",
+    "jsEngine": "hermes",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/gitam-logo-circle.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/gitam-logo-circle.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "packagerOpts": {
+      "minify": true
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": "./assets/gitam-logo-circle.png"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/gitam-logo-circle.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.jeevansekhar.gadmin"
     },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "76c9236c-e9c5-4414-b9d9-8d519e255d68"
+      }
+    },
+    "owner": "jeevansekhar"
   }
 }
