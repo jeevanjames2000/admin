@@ -135,7 +135,6 @@ export default function Scanner({ navigation }) {
         ]);
       }
     } catch (error) {
-      console.error("Error sending scanned data to API:", error);
       setAccess(false);
       setAccessMsg([
         { auth: "Access Denied" },
