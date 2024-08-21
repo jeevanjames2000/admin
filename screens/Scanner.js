@@ -93,48 +93,58 @@ export default function Scanner({ navigation }) {
   };
 
   const sendScannedDataToAPI = async (data) => {
-    const apiURL = `https://sports1.gitam.edu/slot/gym/getAdminSlots/${data.regdNo}/${data.start_time}`;
-
     try {
+      const apiURL = `https://sports1.gitam.edu/slot/gym/getAdminSlots/${data.regdNo}/${data.start_time}`;
+
       const response = await fetch(apiURL, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
-      const result = await response.json();
+      if (!response.ok) {
+        const errorMessage =
+          response.status === 404 ? "No slots found" : "Failed to fetch slots";
+        setAccess(false);
+        setAccessMsg([{ auth: "Access Denied" }, { message: errorMessage }]);
+        return;
+      }
+
+      const slots = await response.json();
       const currentTime = new Date();
-      const isMatch = result.some((slot) => {
+      const match = slots.find((slot) => {
         const slotStart = convertTimeTo24Hour(slot.start_time);
         const slotEnd = convertTimeTo24Hour(slot.end_time);
         return currentTime >= slotStart && currentTime <= slotEnd;
       });
 
-      if (isMatch && result.length > 0) {
-        await UpdateAttendance(result[0]);
+      if (match) {
+        UpdateAttendance(slots[0]).then(() => {
+          setAccess(true);
+          setAccessMsg([
+            { auth: "Access Granted" },
+            {
+              message:
+                "Welcome to Gitam Gym! Please follow rules and regulations!",
+            },
+          ]);
+        });
       } else {
+        setAccess(false);
         setAccessMsg([
           { auth: "Access Denied" },
-          {
-            message: `Cannot enter before the slot time! (${data.start_time})`,
-          },
+          { message: "No matching slot found" },
         ]);
-        setAccess(false);
       }
     } catch (error) {
+      console.error("Error sending scanned data to API:", error);
+      setAccess(false);
       setAccessMsg([
         { auth: "Access Denied" },
-        { message: "User already occcupied! please book new slot!" },
+        { message: "An error occurred" },
       ]);
     }
   };
 
   const UpdateAttendance = async (dataToPost) => {
-    if (dataToPost.attendance === "P") {
-      Alert.alert("Error", "User Already Scanned");
-      return;
-    }
-
     try {
       const response = await fetch(
         "https://sports1.gitam.edu/api/gym/updateGymSchedule",
@@ -152,28 +162,29 @@ export default function Scanner({ navigation }) {
           }),
         }
       );
+      const result = await response.json();
 
       if (response.status === 200) {
         setAccess(true);
         setAccessMsg([
           { auth: "Access Granted" },
           {
-            message: `Welcome to Gitam Gym! please follow the rules and regulations!`,
+            message:
+              "Welcome to Gitam Gym! Please follow rules and regulations!",
           },
         ]);
-      } else {
+      } else if (response.status === 400 || response.status === 404) {
         setAccess(false);
         setAccessMsg([
           { auth: "Access Denied" },
-          {
-            message: `Cannot enter before the slot time!(${dataToPost.start_time})`,
-          },
+          { message: result.message || "An error occurred" },
         ]);
       }
     } catch (error) {
+      setAccess(false);
       setAccessMsg([
-        { auth: "404 Network Error" },
-        { message: "Session Expired! please restart and try again!" },
+        { auth: "Access Denied" },
+        { message: result.message || "Failed to update attendance" },
       ]);
     }
   };
